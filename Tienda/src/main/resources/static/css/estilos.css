@@ -8,13 +8,13 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Other/CascadeStyleSheet.css to ed
 */
 
 body {
-    background-color: black;
+    background-color: bisque;
     font-family: serif;
 }
 
 header {
     position: fixed;
-    background-color: #6666FF;
+    background-color: #6366FF;
     top: 0;
     left: 0;
     width: 100%;
@@ -24,7 +24,7 @@ header {
 
 aside {
     position: fixed;  
-    background-color: #B8860B;
+    background-color: #99FF99;
     top: 110px;
     left: 0;
     width: 20%;
@@ -33,7 +33,7 @@ aside {
 }
 section {
     position: fixed;  
-    background-color: #FFFFFF;
+    background-color: #dd8295;
     top: 110px;
     left: 20%;
     width: 80%;
@@ -84,7 +84,7 @@ nav {
 
 .menu-item {
     padding: 5px;
-    background-color: goldenrod;
+    background-color: green;
     border-radius: 10px;
 }
 
