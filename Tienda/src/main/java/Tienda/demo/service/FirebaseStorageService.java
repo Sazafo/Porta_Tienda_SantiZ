@@ -4,7 +4,6 @@
  */
 package Tienda.demo.service;
 
-
 import com.google.cloud.storage.BlobId;
 import com.google.cloud.storage.BlobInfo;
 import com.google.cloud.storage.Storage;
@@ -17,8 +16,14 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+/**
+ *
+ * @author sazaf
+ */
+
 @Service
 public class FirebaseStorageService {
+
     @Value("${firebase.bucket.name}")
     private String bucketName;
     @Value("${firebase.storage.path}")
@@ -31,7 +36,17 @@ public class FirebaseStorageService {
     }
 
     //Sube un archivo de imagen al almacenamiento de Firebase.    
-    public String uploadImage(MultipartFile localFile, String folder, Long id) throws IOException {
+    public String uploadImage(MultipartFile localFile, String folder, Object id) throws IOException {
+        
+         long longId;
+        if (id instanceof Long) {
+            longId = (Long) id;
+        } else if (id instanceof Integer) {
+            longId = ((Integer) id).longValue();
+        } else {
+            throw new IllegalArgumentException("El ID debe ser de tipo Long o Integer, se recibió: " + id.getClass().getSimpleName());
+        }
+        
         String originalName = localFile.getOriginalFilename();
         String fileExtension = "";
         if (originalName != null && originalName.contains(".")) {
@@ -39,8 +54,7 @@ public class FirebaseStorageService {
         }
 
         // Se genera el nombre del archivo con un formato consistente.
-        String fileName = "img" + getFormattedNumber(id) + fileExtension;
-
+        String fileName = "img" + getFormattedNumber(longId) + fileExtension;
         File tempFile = convertToFile(localFile);
 
         try {
@@ -54,7 +68,7 @@ public class FirebaseStorageService {
     }
 
     //Convierte un MultipartFile a un archivo temporal en el servidor.
-     private File convertToFile(MultipartFile multipartFile) throws IOException {
+    private File convertToFile(MultipartFile multipartFile) throws IOException {
         File tempFile = File.createTempFile("upload-", ".tmp");
         try (FileOutputStream fos = new FileOutputStream(tempFile)) {
             fos.write(multipartFile.getBytes());
@@ -69,10 +83,10 @@ public class FirebaseStorageService {
         String mimeType = Files.probeContentType(file.toPath());
         BlobInfo blobInfo = BlobInfo.newBuilder(blobId).setContentType(mimeType != null ? mimeType : "media").build();
 
-        // Subimos el archivo. El objeto `storage` ya tiene las credenciales necesarias.
+        // Subimos el archivo. El objeto storage ya tiene las credenciales necesarias.
         storage.create(blobInfo, Files.readAllBytes(file.toPath()));
 
-        // El objeto `storage` ya tiene las credenciales del servicio configuradas        
+        // El objeto storage ya tiene las credenciales del servicio configuradas        
         // Se genera la URL firmada. Ahora con una caducidad de 5 años.
         return storage.signUrl(blobInfo, 1825, TimeUnit.DAYS).toString();
     }
