@@ -8,12 +8,12 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import java.io.Serializable;
 import java.time.LocalDateTime;
-//import java.util.List;
+import java.util.List;
 import lombok.Data;
 
 @Data
 @Entity
-@Table(name="categoria")
+@Table(name = "categoria")
 public class Categoria implements Serializable {
 
     private static final long serialVersionUID = 1L;
@@ -41,9 +41,9 @@ public class Categoria implements Serializable {
     @Column(name = "fecha_modificacion", insertable = false, updatable = false)
     private LocalDateTime fechaModificacion;
 
-//    @OneToMany
-//    @JoinColumn(name = "id_categoria", updatable = false, insertable = false)
-//    private List<Producto> productos;
+    @OneToMany
+    @JoinColumn(name = "id_categoria", updatable = false, insertable = false)
+    private List<Producto> productos;
 
     public Categoria() {
     }
@@ -53,4 +53,3 @@ public class Categoria implements Serializable {
         this.activo = activo;
     }
 }
- 
