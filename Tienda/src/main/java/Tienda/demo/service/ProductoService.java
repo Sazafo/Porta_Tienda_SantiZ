@@ -1,7 +1,3 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package Tienda.demo.service;
 
 import Tienda.demo.domain.Producto;
@@ -15,21 +11,22 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-/**
- *
- * @author sazaf
- */
-
 @Service
 public class ProductoService {
 
-    // Permite crear una única instancia de ProductoRepository, y la crea automáticamente
     @Autowired
     private ProductoRepository productoRepository;
 
+    @Autowired
+    private FirebaseStorageService firebaseStorageService;
+
+    // ==============================
+    // CRUD BÁSICO
+    // ==============================
+
     @Transactional(readOnly = true)
     public List<Producto> getProductos(Boolean activos) {
-        if (activos) { // Sólo activos...
+        if (activos) {
             return productoRepository.findByActivoTrue();
         }
         return productoRepository.findAll();
@@ -40,37 +37,58 @@ public class ProductoService {
         return productoRepository.findById(idProducto);
     }
 
-    @Autowired
-    private FirebaseStorageService firebaseStorageService;
-
     @Transactional
     public void save(Producto producto, MultipartFile imagenFile) {
         producto = productoRepository.save(producto);
-        if (!imagenFile.isEmpty()) { // Si no está vacío... pasaron una imagen...
+
+        if (!imagenFile.isEmpty()) {
             try {
                 String rutaImagen = firebaseStorageService.uploadImage(
-                        imagenFile, "producto",
-                        producto.getIdProducto());
+                        imagenFile, "producto", producto.getIdProducto());
+
                 producto.setRutaImagen(rutaImagen);
                 productoRepository.save(producto);
+
             } catch (IOException e) {
-                // Manejo de la excepción
+                throw new RuntimeException("Error al subir imagen", e);
             }
         }
     }
 
     @Transactional
     public void delete(Integer idProducto) {
-        // Verifica si el producto existe antes de intentar eliminarlo
         if (!productoRepository.existsById(idProducto)) {
-            // Lanza una excepción para indicar que el producto no fue encontrado
-            throw new IllegalArgumentException("El producto con ID " + idProducto + " no existe.");
+            throw new IllegalArgumentException(
+                    "El producto con ID " + idProducto + " no existe.");
         }
+
         try {
             productoRepository.deleteById(idProducto);
         } catch (DataIntegrityViolationException e) {
-            // Lanza una nueva excepción para encapsular el problema de integridad de datos
-            throw new IllegalStateException("No se puede eliminar el producto. Tiene datos asociados.", e);
+            throw new IllegalStateException(
+                    "No se puede eliminar el producto. Tiene datos asociados.", e);
         }
+    }
+
+    // ==============================
+    // MÉTODOS DE CONSULTAS PERSONALIZADAS
+    // ==============================
+
+    // ✔ Consulta DERIVADA (Spring Data)
+    @Transactional(readOnly = true)
+    public List<Producto> consultaDerivada(double precioInf, double precioSup) {
+        return productoRepository.findByPrecioBetween(precioInf, precioSup);
+    }
+
+    // ✔ Consulta JPQL
+    @Transactional(readOnly = true)
+    public List<Producto> consultaJPQL(double precioInf, double precioSup) {
+        return productoRepository.consultaJPQL(precioInf, precioSup);
+    }
+
+    // ✔ Consulta SQL nativa
+    @Transactional(readOnly = true)
+    public List<Producto> consultaSQL(double precioInf, double precioSup) {
+        return productoRepository.consultaSQL(precioInf, precioSup);
     }
 }
